@@ -1,17 +1,8 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-
-const markerIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  shadowSize: [41, 41],
-});
+import dynamic from 'next/dynamic';
+const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
 type FormState = {
   name: string;
@@ -34,13 +25,6 @@ type FormState = {
 };
 
 type Status = { type: 'idle' | 'success' | 'error'; message: string };
-
-function ClickableMap({ onPick }: { onPick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click: (event) => onPick(event.latlng.lat, event.latlng.lng),
-  });
-  return null;
-}
 
 export default function Add() {
   const [form, setForm] = useState<FormState>({
@@ -325,19 +309,12 @@ export default function Add() {
 
       <section className="map-panel">
         <div className="map-card">
-          <MapContainer
+          <Map
             center={[form.lat, form.lng]}
-            zoom={12}
-            scrollWheelZoom={false}
+            markerPosition={[form.lat, form.lng]}
+            onPick={updateCoords}
             className="map-shell map-shell-tall"
-          >
-            <TileLayer
-              attribution="&copy; OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ClickableMap onPick={updateCoords} />
-            <Marker position={[form.lat, form.lng]} icon={markerIcon} />
-          </MapContainer>
+          />
         </div>
         <p className="map-meta muted">Click the map to set coordinates.</p>
       </section>

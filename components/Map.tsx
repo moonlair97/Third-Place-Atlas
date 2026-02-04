@@ -1,10 +1,31 @@
 'use client';
 
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
 import { useEffect, useState } from 'react';
 import type { Place } from '@/lib/types';
 
-export default function Map({ places }: { places: Place[] }) {
+type MapProps = {
+  places?: Place[];
+  center?: [number, number];
+  markerPosition?: [number, number] | null;
+  onPick?: (lat: number, lng: number) => void;
+  className?: string;
+};
+
+function Clickable({ onPick }: { onPick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (event) => onPick(event.latlng.lat, event.latlng.lng),
+  });
+  return null;
+}
+
+export default function Map({
+  places = [],
+  center = [47.6062, -122.3321],
+  markerPosition = null,
+  onPick,
+  className,
+}: MapProps) {
   const [markerIcon, setMarkerIcon] = useState<any>(null);
 
   useEffect(() => {
@@ -20,15 +41,13 @@ export default function Map({ places }: { places: Place[] }) {
         shadowSize: [41, 41],
       });
 
-      // Ensure we only update state on the client when mounted
       if (mounted) setMarkerIcon(icon);
 
-      // Load Leaflet CSS on the client
       try {
         // @ts-ignore - importing CSS only on the client; no types are available
         await import('leaflet/dist/leaflet.css');
       } catch (e) {
-        // ignore CSS import failures; it's not critical for SSR avoidance
+        // ignore CSS import failures
       }
     })();
     return () => {
@@ -36,24 +55,25 @@ export default function Map({ places }: { places: Place[] }) {
     };
   }, []);
 
-  const center: [number, number] = [47.6062, -122.3321];
-
   return (
-    <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="map-shell">
-      <TileLayer
-        attribution="&copy; OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <MapContainer center={center} zoom={12} scrollWheelZoom={false} className={className || 'map-shell'}>
+      <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {onPick ? <Clickable onPick={onPick} /> : null}
+
       {markerIcon &&
-        places.map((place) => (
-          <Marker key={place.id} position={[place.lat, place.lng]} icon={markerIcon}>
-            <Popup>
-              <strong>{place.name}</strong>
-              <br />
-              {place.category}
-            </Popup>
-          </Marker>
-        ))}
+        (markerPosition
+          ? (
+              <Marker key={`single`} position={markerPosition} icon={markerIcon} />
+            )
+          : places.map((place) => (
+              <Marker key={place.id} position={[place.lat, place.lng]} icon={markerIcon}>
+                <Popup>
+                  <strong>{place.name}</strong>
+                  <br />
+                  {place.category}
+                </Popup>
+              </Marker>
+            )))}
     </MapContainer>
   );
 }
