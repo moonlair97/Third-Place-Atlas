@@ -1,0 +1,1 @@
+import { createClient } from '@supabase/supabase-js'; export function getSupabaseClient(){ const u=process.env.NEXT_PUBLIC_SUPABASE_URL; const k=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; return (u&&k)?createClient(u,k):null;}

@@ -1,0 +1,20 @@
+export type Place = {
+  id: string;
+  name: string;
+  category: string;
+  address: string;
+  city?: string;
+  lat: number;
+  lng: number;
+  quiet_level?: number;
+  lighting_level?: number;
+  outlets_density?: number;
+  linger_ok?: boolean;
+  low_sensory?: boolean;
+  open_late?: boolean;
+  accessible_restroom?: boolean;
+  outdoor_seating?: boolean;
+  seating_type?: string;
+  wifi_quality?: number;
+  safety_evening?: number;
+};
